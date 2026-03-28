@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>YouTube Playlist Player</title>
+
+<style>
+body { font-family: Arial; margin: 20px; }
+
+.container { display: flex; gap: 20px; }
+
+.left { flex: 2; }
+
+.right {
+    flex: 1;
+    border-left: 1px solid #ccc;
+    padding-left: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+iframe {
+    width: 100%;
+    height: 400px;
+}
+
+input { width: 70%; padding: 8px; }
+
+button { padding: 8px 15px; }
+
+.video-item {
+    cursor: pointer;
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+
+.video-item:hover {
+    background: #f0f0f0;
+}
+</style>
+</head>
+
+<body>
+
+<h2>YouTube Playlist Player</h2>
+
+<input type="text" id="videoInput" placeholder="Paste YouTube link here">
+<button onclick="addVideo()">Add</button>
+
+<div class="container">
+
+    <!-- PLAYER -->
+    <div class="left">
+        <iframe id="player"
+            src=""
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <!-- LIST -->
+    <div class="right" id="videoList"></div>
+
+</div>
+
+<script>
+// Better YouTube ID extractor
+function getVideoID(url) {
+    try {
+        let u = new URL(url);
+
+        // Standard link
+        if (u.searchParams.get("v")) {
+            return u.searchParams.get("v");
+        }
+
+        // Short link youtu.be
+        if (u.hostname.includes("youtu.be")) {
+            return u.pathname.slice(1);
+        }
+
+    } catch(e) {
+        return null;
+    }
+
+    return null;
+}
+
+function addVideo() {
+    let input = document.getElementById("videoInput");
+    let url = input.value.trim();
+
+    let videoID = getVideoID(url);
+
+    if (!videoID) {
+        alert("Invalid YouTube link!");
+        return;
+    }
+
+    let list = document.getElementById("videoList");
+
+    let div = document.createElement("div");
+    div.className = "video-item";
+    div.innerText = "Video: " + videoID;
+
+    div.onclick = function() {
+        playVideo(videoID);
+    };
+
+    list.appendChild(div);
+
+    playVideo(videoID);
+    input.value = "";
+}
+
+function playVideo(videoID) {
+    let player = document.getElementById("player");
+
+    player.src =
+        "https://www.youtube.com/embed/" + videoID +
+        "?autoplay=1&rel=0";
+}
+</script>
+
+</body>
+</html>
