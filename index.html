@@ -1,127 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>YouTube Playlist Player</title>
-
-<style>
-body { font-family: Arial; margin: 20px; }
-
-.container { display: flex; gap: 20px; }
-
-.left { flex: 2; }
-
-.right {
-    flex: 1;
-    border-left: 1px solid #ccc;
-    padding-left: 10px;
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-iframe {
-    width: 100%;
-    height: 400px;
-}
-
-input { width: 70%; padding: 8px; }
-
-button { padding: 8px 15px; }
-
-.video-item {
-    cursor: pointer;
-    padding: 8px;
-    border-bottom: 1px solid #ddd;
-}
-
-.video-item:hover {
-    background: #f0f0f0;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>YouTube Playlist Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #333; }
+    .controls { text-align: center; margin-bottom: 20px; }
+    input[type="text"] { width: 60%; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 15px; margin-left: 10px; background: #0073e6; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #005bb5; }
+    .playlist { margin: 20px auto; width: 80%; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .playlist h2 { margin-top: 0; }
+    .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px; }
+    iframe { width: 100%; height: 200px; border: none; border-radius: 8px; }
+  </style>
 </head>
-
 <body>
+  <h1>YouTube Playlist Dashboard</h1>
 
-<h2>YouTube Playlist Player</h2>
+  <!-- Input controls -->
+  <div class="controls">
+    <input type="text" id="youtubeLink" placeholder="Paste YouTube link here...">
+    <button onclick="addVideo()">Add to Playlist</button>
+  </div>
 
-<input type="text" id="videoInput" placeholder="Paste YouTube link here">
-<button onclick="addVideo()">Add</button>
+  <!-- Playlist display -->
+  <div class="playlist">
+    <h2>Playlist</h2>
+    <ul id="playlist"></ul>
+  </div>
 
-<div class="container">
+  <!-- Video grid -->
+  <div class="video-grid" id="videoGrid"></div>
 
-    <!-- PLAYER -->
-    <div class="left">
-        <iframe id="player"
-            src=""
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen>
-        </iframe>
-    </div>
+  <script>
+    const playlistElement = document.getElementById('playlist');
+    const videoGrid = document.getElementById('videoGrid');
 
-    <!-- LIST -->
-    <div class="right" id="videoList"></div>
-
-</div>
-
-<script>
-// Better YouTube ID extractor
-function getVideoID(url) {
-    try {
-        let u = new URL(url);
-
-        // Standard link
-        if (u.searchParams.get("v")) {
-            return u.searchParams.get("v");
-        }
-
-        // Short link youtu.be
-        if (u.hostname.includes("youtu.be")) {
-            return u.pathname.slice(1);
-        }
-
-    } catch(e) {
-        return null;
+    function extractVideoId(url) {
+      // Works for both long and short YouTube links
+      let videoId = null;
+      if (url.includes("youtube.com/watch?v=")) {
+        videoId = url.split("v=")[1].split("&")[0];
+      } else if (url.includes("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
+      }
+      return videoId;
     }
 
-    return null;
-}
+    function addVideo() {
+      const link = document.getElementById('youtubeLink').value.trim();
+      if (!link) return;
 
-function addVideo() {
-    let input = document.getElementById("videoInput");
-    let url = input.value.trim();
-
-    let videoID = getVideoID(url);
-
-    if (!videoID) {
+      const videoId = extractVideoId(link);
+      if (!videoId) {
         alert("Invalid YouTube link!");
         return;
+      }
+
+      // Add to playlist
+      const li = document.createElement('li');
+      li.textContent = link;
+      playlistElement.appendChild(li);
+
+      // Clear grid
+      videoGrid.innerHTML = "";
+
+      // Show 12 instances of the video
+      for (let i = 0; i < 12; i++) {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoId}`;
+        videoGrid.appendChild(iframe);
+      }
+
+      // Clear input
+      document.getElementById('youtubeLink').value = "";
     }
-
-    let list = document.getElementById("videoList");
-
-    let div = document.createElement("div");
-    div.className = "video-item";
-    div.innerText = "Video: " + videoID;
-
-    div.onclick = function() {
-        playVideo(videoID);
-    };
-
-    list.appendChild(div);
-
-    playVideo(videoID);
-    input.value = "";
-}
-
-function playVideo(videoID) {
-    let player = document.getElementById("player");
-
-    player.src =
-        "https://www.youtube.com/embed/" + videoID +
-        "?autoplay=1&rel=0";
-}
-</script>
-
+  </script>
 </body>
 </html>
